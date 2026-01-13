@@ -1,65 +1,84 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import StatCard from "@/components/StatCard";
+import ClusterChart from "@/components/ClusterChart";
+import HeatmapChart from "@/components/HeatmapChart";
+import ClusterProfile from "@/components/ClusterProfile";
+import RiskRanking from "@/components/RiskRanking";
+import AutoRecommendation from "@/components/AutoRecommendation";
+import DataTable from "@/components/DataTable";
+
+export default function Dashboard() {
+  const [clusterData, setClusterData] = useState<any[]>([]);
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+  const [geoData, setGeoData] = useState<any>(null);
+  const [silhouette, setSilhouette] = useState("");
+
+  useEffect(() => {
+    fetch("/api/clustering")
+      .then(r => r.json())
+      .then(r => {
+        setClusterData(r.data);
+        setSilhouette(r.silhouette);
+      });
+
+    fetch("/api/heatmap")
+      .then(r => r.json())
+      .then(setHeatmapData);
+
+    fetch("/semarang-kecamatan.geojson")
+      .then(r => r.json())
+      .then(setGeoData);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      {/* Stat cards */}
+      <section className="section grid-3">
+        <StatCard title="Jumlah Kecamatan" value={clusterData.length} />
+        <StatCard title="Silhouette Score" value={silhouette} />
+        <StatCard title="Metode" value="K-Means + Min-Max" />
+      </section>
+
+      {/* Cluster Scatter Chart */}
+      <section className="section card">
+        <h2>Visualisasi Clustering Risiko</h2>
+        <ClusterChart data={clusterData} />
+
+        <div className="legend">
+          <span><div className="dot" style={{ background: "var(--low)" }} />Rendah</span>
+          <span><div className="dot" style={{ background: "var(--medium)" }} />Sedang</span>
+          <span><div className="dot" style={{ background: "var(--high)" }} />Tinggi</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Heatmap */}
+      <section className="section card">
+        <h2>Heatmap Wilayah Risiko</h2>
+        {geoData && (
+          <HeatmapChart geoData={geoData} data={heatmapData} />
+        )}
+      </section>
+
+      <section className="section card">
+        <DataTable data={clusterData} />
+      </section>
+
+
+      {/* Profil Cluster + Ranking + Rekomendasi */}
+      <section className="section card">
+        <ClusterProfile data={clusterData} />
+        <RiskRanking data={clusterData} />
+        <AutoRecommendation data={clusterData} />
+      </section>
+
+      {/* Unduh laporan PDF */}
+      <section style={{ textAlign: "right" }}>
+        <a href="/api/laporan" className="button">
+          Unduh Laporan PDF
+        </a>
+      </section>
+    </>
   );
 }
