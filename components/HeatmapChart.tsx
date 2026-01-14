@@ -1,6 +1,7 @@
 "use client";
 
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface ClusterItem {
@@ -11,9 +12,9 @@ interface ClusterItem {
 }
 
 const CLUSTER_COLOR: Record<number, string> = {
-  0: "#22c55e", // rendah
-  1: "#facc15", // sedang
-  2: "#ef4444", // tinggi
+  0: "#22c55e",
+  1: "#facc15",
+  2: "#ef4444",
 };
 
 const CLUSTER_LABEL: Record<number, string> = {
@@ -32,41 +33,70 @@ export default function HeatmapChart({
   geoData: any;
   data: ClusterItem[];
 }) {
-  const style = (feature: any) => {
-    const kec = data.find(
-      d =>
-        normalize(d.nama_kecamatan) ===
-        normalize(feature.properties.nama_kecamatan)
+  const dataMap = new Map(
+    data.map(d => [normalize(d.nama_kecamatan), d])
+  );
+
+  // ======================
+  // BASE STYLE
+  // ======================
+  const baseStyle = (feature: any): L.PathOptions => {
+    const kec = dataMap.get(
+      normalize(feature.properties.nm_kecamatan)
     );
 
     return {
       fillColor: kec ? CLUSTER_COLOR[kec.cluster] : "#e5e7eb",
-      weight: 1,
+      weight: 0.4,
       color: "#ffffff",
       fillOpacity: 0.75,
+      className: "geo-base",
     };
   };
 
-  const onEachFeature = (feature: any, layer: any) => {
-    const kec = data.find(
-      d =>
-        normalize(d.nama_kecamatan) ===
-        normalize(feature.properties.nama_kecamatan)
+  // ======================
+  // HOVER STYLE (FAKE 3D)
+  // ======================
+  const hoverStyle: L.PathOptions = {
+    fillOpacity: 0.9,
+    weight: 0.4,
+    color: "#ffffff",
+    className: "geo-3d",
+  };
+
+  // ======================
+  // EVENTS
+  // ======================
+  const onEachFeature = (feature: any, layer: L.Layer) => {
+    const kec = dataMap.get(
+      normalize(feature.properties.nm_kecamatan)
     );
 
     layer.bindTooltip(
       `
-      <strong>${feature.properties.nama_kecamatan}</strong><br/>
+      <strong>${feature.properties.nm_kecamatan}</strong><br/>
       IR: ${kec?.ir?.toFixed(2) ?? "-"}<br/>
       CFR: ${kec?.cfr?.toFixed(2) ?? "-"}<br/>
       Klaster: ${kec ? CLUSTER_LABEL[kec.cluster] : "-"}
       `,
       { sticky: true }
     );
+
+    layer.on({
+      mouseover: (e: L.LeafletMouseEvent) => {
+        const target = e.target as L.Path;
+        target.setStyle(hoverStyle);
+        target.bringToFront();
+      },
+      mouseout: (e: L.LeafletMouseEvent) => {
+        const target = e.target as L.Path;
+        target.setStyle(baseStyle(feature));
+      },
+    });
   };
 
   return (
-    <div className="map-container">
+    <div className="map-container" style={{ height: "500px" }}>
       <MapContainer
         center={[-6.97, 110.42]}
         zoom={11}
@@ -80,10 +110,23 @@ export default function HeatmapChart({
 
         <GeoJSON
           data={geoData}
-          style={style}
+          style={baseStyle}
           onEachFeature={onEachFeature}
         />
       </MapContainer>
+
+      {/* 🎨 3D EFFECT TANPA GARIS HITAM */}
+      <style jsx global>{`
+        .geo-base {
+          transition: filter 0.15s ease, opacity 0.15s ease;
+        }
+
+        .geo-3d {
+          filter:
+            drop-shadow(0 10px 16px rgba(0, 0, 0, 0.3))
+            brightness(1.06);
+        }
+      `}</style>
     </div>
   );
 }

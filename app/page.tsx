@@ -73,7 +73,7 @@ export default function Dashboard() {
     // ======================
     // FETCH GEOJSON
     // ======================
-    fetch("/semarang_kecamatan.geojson")
+    fetch("/semarang-kecamatan.geojson")
       .then(r => r.json())
       .then(setGeoData)
       .catch(err =>
