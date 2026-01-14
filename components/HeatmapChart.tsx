@@ -1,58 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-interface HeatmapChartProps {
-  geoData: any;  // GeoJSON
-  data: Array<{
-    nama_kecamatan: string;
-    cluster: number;  // 0, 1, 2
-    IR: number;
-    CFR: number;
-  }>;
+interface ClusterItem {
+  nama_kecamatan: string;
+  ir: number;
+  cfr: number;
+  cluster: number;
 }
 
-export default function HeatmapChart({ geoData, data }: HeatmapChartProps) {
-  const [geo, setGeo] = useState<any>(null);
+const CLUSTER_COLOR: Record<number, string> = {
+  0: "#22c55e", // rendah
+  1: "#facc15", // sedang
+  2: "#ef4444", // tinggi
+};
 
-  useEffect(() => {
-    setGeo(geoData);
-  }, [geoData]);
+const CLUSTER_LABEL: Record<number, string> = {
+  0: "Rendah",
+  1: "Sedang",
+  2: "Tinggi",
+};
 
-  const getColor = (cluster: number) => {
-    switch (cluster) {
-      case 0: return "#16a34a"; // Rendah
-      case 1: return "#eab308"; // Sedang
-      case 2: return "#dc2626"; // Tinggi
-      default: return "#ccc";
-    }
-  };
+const normalize = (s = "") =>
+  s.toLowerCase().replace(/\s+/g, "");
 
+export default function HeatmapChart({
+  geoData,
+  data,
+}: {
+  geoData: any;
+  data: ClusterItem[];
+}) {
   const style = (feature: any) => {
-    const kec = data.find(d => d.nama_kecamatan === feature.properties.nama_kecamatan);
+    const kec = data.find(
+      d =>
+        normalize(d.nama_kecamatan) ===
+        normalize(feature.properties.nama_kecamatan)
+    );
+
     return {
-      fillColor: kec ? getColor(kec.cluster) : "#ccc",
+      fillColor: kec ? CLUSTER_COLOR[kec.cluster] : "#e5e7eb",
       weight: 1,
       color: "#ffffff",
-      fillOpacity: 0.7,
+      fillOpacity: 0.75,
     };
   };
 
-  if (!geo) return <p>Memuat peta...</p>;
+  const onEachFeature = (feature: any, layer: any) => {
+    const kec = data.find(
+      d =>
+        normalize(d.nama_kecamatan) ===
+        normalize(feature.properties.nama_kecamatan)
+    );
+
+    layer.bindTooltip(
+      `
+      <strong>${feature.properties.nama_kecamatan}</strong><br/>
+      IR: ${kec?.ir?.toFixed(2) ?? "-"}<br/>
+      CFR: ${kec?.cfr?.toFixed(2) ?? "-"}<br/>
+      Klaster: ${kec ? CLUSTER_LABEL[kec.cluster] : "-"}
+      `,
+      { sticky: true }
+    );
+  };
 
   return (
-    <MapContainer
-      center={[-6.9667, 110.4167]} // koordinat Semarang
-      zoom={11}
-      style={{ height: 400, width: "100%" }}
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
-      <GeoJSON data={geo} style={style} />
-    </MapContainer>
+    <div className="map-container">
+      <MapContainer
+        center={[-6.97, 110.42]}
+        zoom={11}
+        scrollWheelZoom={false}
+        style={{ height: "100%", width: "100%" }}
+      >
+        <TileLayer
+          attribution="© OpenStreetMap"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <GeoJSON
+          data={geoData}
+          style={style}
+          onEachFeature={onEachFeature}
+        />
+      </MapContainer>
+    </div>
   );
 }

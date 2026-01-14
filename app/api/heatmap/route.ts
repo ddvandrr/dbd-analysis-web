@@ -1,14 +1,23 @@
-import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
-  const [rows]: any = await db.query(`
-    SELECT 
-      nama_kecamatan,
-      IR,
-      CFR
-    FROM rekap_kecamatan
-  `);
+  try {
+    const { data, error } = await supabase
+      .from("rekap_kecamatan")
+      .select("nama_kecamatan, ir");
 
-  return NextResponse.json(rows);
+    if (error) {
+      console.error("Supabase error:", error);
+      throw error;
+    }
+
+    return Response.json(data);
+  } catch (err: any) {
+    console.error("API /heatmap error:", err);
+
+    return Response.json(
+      { error: err.message ?? "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

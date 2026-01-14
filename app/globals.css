@@ -1,16 +1,24 @@
 @import "tailwindcss";
 
+/* =========================
+   Design Tokens
+   ========================= */
 :root {
   --bg: #f8fafc;
   --card: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
+  --border: #e5e7eb;
 
   --low: #22c55e;
   --medium: #facc15;
   --high: #ef4444;
+  --primary: #0f172a;
 }
 
+/* =========================
+   Base Reset
+   ========================= */
 * {
   box-sizing: border-box;
 }
@@ -19,19 +27,20 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-h1, h2 {
+/* =========================
+   Typography
+   ========================= */
+h1 {
+  font-size: 26px;
+  font-weight: 600;
   margin: 0;
 }
 
-h1 {
-  font-size: 28px;
-  font-weight: 600;
-}
-
-h2 {
+h2,
+h3 {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 16px;
@@ -40,14 +49,20 @@ h2 {
 p {
   margin: 0;
   color: var(--muted);
+  font-size: 14px;
 }
 
-.card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.06);
-  border: 1px solid #e5e7eb;
+/* =========================
+   Layout
+   ========================= */
+.section {
+  margin-bottom: 32px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* jarak antar card */
 }
 
 .grid-3 {
@@ -56,54 +71,28 @@ p {
   gap: 24px;
 }
 
-.section {
-  margin-bottom: 32px;
+/* =========================
+   Card
+   ========================= */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
 }
 
-.button {
-  display: inline-block;
-  padding: 12px 24px;
-  background: #0f172a;
-  color: white;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 500;
+.card:hover {
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.1);
 }
 
-.button:hover {
-  opacity: 0.9;
-}
-
-.legend {
-  display: flex;
-  gap: 24px;
-  margin-top: 12px;
-  font-size: 14px;
-}
-
-.legend span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-body {
-  margin: 0;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-}
-
-/* HEADER */
+/* =========================
+   Header
+   ========================= */
 .app-header {
   background: white;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-inner {
@@ -112,25 +101,20 @@ body {
   padding: 24px 32px;
 }
 
-.header-inner h1 {
-  font-size: 26px;
-  font-weight: 600;
-  margin: 0;
-}
-
 .header-inner p {
   margin-top: 6px;
-  color: #64748b;
+  color: var(--muted);
 }
 
-/* MAIN */
+/* =========================
+   Main & Footer
+   ========================= */
 .app-main {
   max-width: 1200px;
   margin: auto;
   padding: 32px;
 }
 
-/* FOOTER */
 .app-footer {
   text-align: center;
   padding: 24px;
@@ -138,129 +122,216 @@ body {
   color: #94a3b8;
 }
 
+/* =========================
+   Table
+   ========================= */
 .table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.table th, .table td {
+.table th,
+.table td {
   padding: 10px 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   text-align: left;
 }
 
-.rank-list li {
-  margin-bottom: 8px;
-}
-
-.recommend {
-  margin-bottom: 14px;
-}
-
-/* ===========================
-   ClusterProfile
-   =========================== */
-.cluster-profile {
-  background-color: var(--bg);
-  border-left: 4px solid var(--low);
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  border-radius: 12px;
-}
-
-.cluster-profile:nth-child(2) {
-  border-left-color: var(--medium);
-}
-
-.cluster-profile:nth-child(3) {
-  border-left-color: var(--high);
-}
-
-.cluster-profile h3 {
-  font-size: 16px;
+.table th {
   font-weight: 600;
-  margin-bottom: 8px;
+  background: #f9fafb;
 }
 
-.cluster-profile p {
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 8px;
-}
-
-.cluster-profile ul {
-  list-style: disc;
-  padding-left: 20px;
-  margin: 0;
-}
-
-.cluster-profile ul li {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-/* ===========================
-   RiskRanking
-   =========================== */
-.risk-ranking ol {
-  counter-reset: ranking;
-  padding-left: 20px;
-}
-
-.risk-ranking li {
+/* =========================
+   Data Table Header
+   ========================= */
+.table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 12px;
+}
+
+.filter-select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  background: white;
+}
+
+/* =========================
+   Pagination
+   ========================= */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
   font-size: 14px;
 }
 
-.risk-ranking li strong {
-  color: var(--text);
+.pagination button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
 }
 
-/* ===========================
-   AutoRecommendation
-   =========================== */
-.recommendation {
-  background-color: var(--bg);
-  border-left: 5px solid #3b82f6;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  border-radius: 12px;
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.recommendation h3 {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0 0 6px 0;
-}
-
-.recommendation p {
-  font-size: 14px;
+.empty {
+  text-align: center;
+  padding: 16px;
   color: var(--muted);
+}
+
+
+/* =========================
+   Cluster Profile
+   ========================= */
+.cluster-profile {
+  background: var(--bg);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border-left: 4px solid var(--low);
+  margin-bottom: 16px;
+}
+
+.cluster-profile.medium {
+  border-left-color: var(--medium);
+}
+
+.cluster-profile.high {
+  border-left-color: var(--high);
+}
+
+/* =========================
+   Risk Ranking – Bar Style
+   ========================= */
+.risk-row {
+  margin-bottom: 14px;
+}
+
+.risk-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
   margin-bottom: 6px;
 }
 
-.recommendation ul {
-  padding-left: 20px;
-  margin: 0;
+.risk-label small {
+  color: var(--muted);
 }
 
-.recommendation ul li {
+.risk-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.risk-bar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--low),
+    var(--medium),
+    var(--high)
+  );
+  border-radius: 999px;
+}
+
+/* =========================
+   Auto Recommendation
+   ========================= */
+.rec {
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
   font-size: 14px;
+  border-left: 4px solid;
+}
+
+.rec strong {
+  display: block;
+  font-weight: 600;
   margin-bottom: 4px;
 }
 
-/* ===========================
-   Cluster / Risk Legend
-   =========================== */
+.rec span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.rec.low {
+  background: #ecfdf5;
+  border-color: var(--low);
+}
+
+.rec.medium {
+  background: #fffbeb;
+  border-color: var(--medium);
+}
+
+.rec.high {
+  background: #fef2f2;
+  border-color: var(--high);
+}
+
+.map-container {
+  height: 420px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.legend .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.low { background: #22c55e; }
+.dot.medium { background: #facc15; }
+.dot.high { background: #ef4444; }
+
+
+/* =========================
+   Legend
+   ========================= */
+.legend {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
 .legend span {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .legend .dot {
@@ -269,11 +340,65 @@ body {
   border-radius: 50%;
 }
 
-/* Optional hover effect for cards */
-.card:hover {
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-  transition: box-shadow 0.2s ease-in-out;
+/* =========================
+   Cluster Profile Table
+   ========================= */
+.cluster-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
 }
 
+.cluster-table thead th {
+  text-align: center;
+  font-weight: 600;
+  padding: 12px 10px;
+  border-bottom: 2px solid #e5e7eb;
+  color: #374151;
+}
 
+.cluster-table tbody td {
+  text-align: center;
+  padding: 12px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1f2937;
+}
+
+.cluster-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.cluster-table .center {
+  text-align: center;
+}
+
+.cluster-table .center {
+  text-align: center;
+}
+
+/* =========================
+   Risk Badge
+   ========================= */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.badge.rendah {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.badge.sedang {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.badge.tinggi {
+  background: #fef2f2;
+  color: #991b1b;
+}
 

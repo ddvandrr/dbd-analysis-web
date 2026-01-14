@@ -1,126 +1,115 @@
-"use client";
+import { useMemo, useState } from "react";
 
-import { useState, useMemo } from "react";
+type ClusterLevel = "Rendah" | "Sedang" | "Tinggi";
 
-interface DataTableProps {
-  data: {
-    nama_kecamatan: string;
-    IR: number | string;
-    CFR: number | string;
-    kategori: string;
-  }[];
+interface DataItem {
+  kode_kecamatan: string;
+  nama_kecamatan: string;
+  ir: number;
+  cfr: number;
+  cluster: 0 | 1 | 2;
 }
 
-export default function DataTable({ data }: DataTableProps) {
-  const [filter, setFilter] = useState<"Semua" | "Rendah" | "Sedang" | "Tinggi">("Semua");
+const CLUSTER_LABEL: Record<number, ClusterLevel> = {
+  0: "Rendah",
+  1: "Sedang",
+  2: "Tinggi",
+};
+
+const PAGE_SIZE = 5;
+
+export default function KecamatanTable({ data }: { data: DataItem[] }) {
   const [page, setPage] = useState(1);
-  const perPage = 5;
+  const [filter, setFilter] = useState<ClusterLevel | "ALL">("ALL");
 
-  // Filtered data
   const filteredData = useMemo(() => {
-    return filter === "Semua" ? data : data.filter(d => d.kategori === filter);
-  }, [filter, data]);
+    if (filter === "ALL") return data;
+    return data.filter(d => CLUSTER_LABEL[d.cluster] === filter);
+  }, [data, filter]);
 
-  // Pagination
-  const pageCount = Math.ceil(filteredData.length / perPage);
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
   const pageData = useMemo(() => {
-    const start = (page - 1) * perPage;
-    return filteredData.slice(start, start + perPage);
-  }, [page, filteredData]);
-
-  // Cluster colors
-  const clusterColor = (kategori: string) => {
-    switch (kategori) {
-      case "Rendah": return "#22c55e";
-      case "Sedang": return "#facc15";
-      case "Tinggi": return "#ef4444";
-      default: return "#64748b";
-    }
-  };
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredData.slice(start, start + PAGE_SIZE);
+  }, [filteredData, page]);
 
   return (
-    <div className="card">
-      <h2>Data Kecamatan & Cluster Risiko</h2>
+    <div className="card cluster-table">
+      <div className="table-header">
+        <h3>Data Kecamatan</h3>
 
-      {/* Filter */}
-      <div style={{ marginBottom: 12 }}>
-        <label>
-          Filter:{" "}
-          <select value={filter} onChange={e => { setFilter(e.target.value as any); setPage(1); }}>
-            <option value="Semua">Semua</option>
-            <option value="Rendah">Rendah</option>
-            <option value="Sedang">Sedang</option>
-            <option value="Tinggi">Tinggi</option>
-          </select>
-        </label>
+        <select
+          value={filter}
+          onChange={e => {
+            setFilter(e.target.value as any);
+            setPage(1);
+          }}
+          className="filter-select"
+        >
+          <option value="ALL">Semua Klasifikasi</option>
+          <option value="Rendah">Rendah</option>
+          <option value="Sedang">Sedang</option>
+          <option value="Tinggi">Tinggi</option>
+        </select>
       </div>
 
-      {/* Table */}
-      <table className="table">
+      <table>
         <thead>
           <tr>
-            <th>No</th>
-            <th>Kecamatan</th>
-            <th>IR (Norm)</th>
-            <th>CFR (Norm)</th>
-            <th>Cluster</th>
+            <th className="center">No</th>
+            <th>Nama Kecamatan</th>
+            <th className="right">IR</th>
+            <th className="right">CFR</th>
+            <th className="center">Klasifikasi</th>
           </tr>
         </thead>
+
         <tbody>
           {pageData.map((d, i) => (
-            <tr key={i}>
-              <td>{(page - 1) * perPage + i + 1}</td>
+            <tr key={d.kode_kecamatan}>
+              <td className="center">
+                {(page - 1) * PAGE_SIZE + i + 1}
+              </td>
               <td>{d.nama_kecamatan}</td>
-              <td>{d.IR != null ? Number(d.IR).toFixed(2) : "-"}</td>
-              <td>{d.CFR != null ? Number(d.CFR).toFixed(2) : "-"}</td>
-              <td>
-                <span
-                  style={{
-                    background: clusterColor(d.kategori),
-                    color: "white",
-                    padding: "2px 8px",
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
-                >
-                  {d.kategori}
+              <td className="right">{d.ir.toFixed(2)}</td>
+              <td className="right">{d.cfr.toFixed(2)}</td>
+              <td className="center">
+                <span className={`badge ${CLUSTER_LABEL[d.cluster].toLowerCase()}`}>
+                  {CLUSTER_LABEL[d.cluster]}
                 </span>
               </td>
             </tr>
           ))}
+
+          {pageData.length === 0 && (
+            <tr>
+              <td colSpan={5} className="empty">
+                Tidak ada data
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
 
       {/* Pagination */}
-      <div style={{ marginTop: 12, display: "flex", justifyContent: "center", gap: 8 }}>
+      <div className="pagination">
         <button
           disabled={page === 1}
-          onClick={() => setPage(p => Math.max(p - 1, 1))}
-          className="button"
+          onClick={() => setPage(p => p - 1)}
         >
-          Prev
+          Sebelumnya
         </button>
-        {Array.from({ length: pageCount }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setPage(i + 1)}
-            style={{
-              background: i + 1 === page ? "#0f172a" : "#e5e7eb",
-              color: i + 1 === page ? "white" : "#0f172a",
-              padding: "4px 10px",
-              borderRadius: 6,
-              fontWeight: 500,
-            }}
-          >
-            {i + 1}
-          </button>
-        ))}
+
+        <span>
+          Halaman {page} dari {totalPages || 1}
+        </span>
+
         <button
-          disabled={page === pageCount}
-          onClick={() => setPage(p => Math.min(p + 1, pageCount))}
-          className="button"
+          disabled={page === totalPages}
+          onClick={() => setPage(p => p + 1)}
         >
-          Next
+          Berikutnya
         </button>
       </div>
     </div>

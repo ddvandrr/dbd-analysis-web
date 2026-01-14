@@ -1,59 +1,65 @@
-"use client";
+type ClusterLevel = "Rendah" | "Sedang" | "Tinggi";
 
-interface ClusterProfileProps {
-  data?: Array<{
-    nama_kecamatan: string;
-    cluster?: number;
-    IR?: number;
-    CFR?: number;
-  }>;
+interface DataItem {
+  cluster: number;
+  ir: number;
+  cfr: number;
 }
 
-export default function ClusterProfile({ data }: ClusterProfileProps) {
-  if (!data || data.length === 0) return <p>Data cluster belum tersedia.</p>;
+const CLUSTER_LABEL: Record<number, ClusterLevel> = {
+  0: "Rendah",
+  1: "Sedang",
+  2: "Tinggi",
+};
 
-  const clusters = [0, 1, 2];
-  const clusterNames = ["Rendah", "Sedang", "Tinggi"];
-  const clusterColors = ["var(--low)", "var(--medium)", "var(--high)"];
+export default function ClusterProfile({ data }: { data: DataItem[] }) {
+  const clusters = Object.entries(CLUSTER_LABEL).map(([key, label]) => {
+    const cluster = Number(key);
+    const items = data.filter(d => d.cluster === cluster);
+    const count = items.length;
+
+    const avgIR = count
+      ? items.reduce((s, d) => s + d.ir, 0) / count
+      : 0;
+
+    const avgCFR = count
+      ? items.reduce((s, d) => s + d.cfr, 0) / count
+      : 0;
+
+    return { cluster, label, count, avgIR, avgCFR };
+  });
 
   return (
-    <section className="section card">
-      <h2>Profil Cluster</h2>
-      {clusters.map((c) => {
-        const items = data.filter((d) => d.cluster === c);
-        if (items.length === 0) return null;
+    <div className="card cluster-table">
+      <h3 className="card-title">Profil Cluster</h3>
 
-        const avgIR =
-          items.reduce((sum, d) => sum + (Number(d.IR) || 0), 0) / items.length;
-        const avgCFR =
-          items.reduce((sum, d) => sum + (Number(d.CFR) || 0), 0) / items.length;
+      <table>
+        <thead>
+          <tr>
+            <th className="center">Cluster</th>
+            <th className="center">Kategori</th>
+            <th className="center">Kecamatan</th>
+            <th className="right">IR</th>
+            <th className="right">CFR</th>
+          </tr>
+        </thead>
 
-        return (
-          <div
-            key={c}
-            style={{
-              borderLeft: `6px solid ${clusterColors[c]}`,
-              padding: "12px 16px",
-              marginBottom: "16px",
-              borderRadius: "12px",
-              background: "var(--card)",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            }}
-          >
-            <h3 style={{ marginBottom: "6px" }}>
-              {clusterNames[c]} ({items.length} kecamatan)
-            </h3>
-            <p style={{ marginBottom: "8px", color: "var(--muted)" }}>
-              Rata-rata IR: {avgIR.toFixed(2)}, Rata-rata CFR: {avgCFR.toFixed(2)}
-            </p>
-            <ul style={{ paddingLeft: "20px", margin: 0 }}>
-              {items.map((d, i) => (
-                <li key={i}>{d.nama_kecamatan}</li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </section>
+        <tbody>
+          {clusters.map(c => (
+            <tr key={c.cluster}>
+              <td className="center">{c.cluster}</td>
+              <td className="center">
+                <span className={`badge ${c.label.toLowerCase()}`}>
+                  {c.label}
+                </span>
+              </td>
+              <td className="center">{c.count}</td>
+              <td className="right">{c.avgIR.toFixed(2)}</td>
+              <td className="right">{c.avgCFR.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
