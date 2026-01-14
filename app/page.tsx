@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import StatCard from "@/components/StatCard";
 import ClusterChart from "@/components/ClusterChart";
-import HeatmapChart from "@/components/HeatmapChart";
+import dynamic from "next/dynamic";
+
+const HeatmapChart = dynamic(() => import("@/components/HeatmapChart"), { ssr: false });
+
 import ClusterProfile from "@/components/ClusterProfile";
 import RiskRanking from "@/components/RiskRanking";
 import AutoRecommendation from "@/components/AutoRecommendation";
@@ -56,9 +59,7 @@ export default function Dashboard() {
       {/* Heatmap */}
       <section className="section card">
         <h2>Heatmap Wilayah Risiko</h2>
-        {geoData && (
-          <HeatmapChart geoData={geoData} data={heatmapData} />
-        )}
+        {geoData && <HeatmapChart geoData={geoData} data={heatmapData} />}
       </section>
 
       <section className="section card">
